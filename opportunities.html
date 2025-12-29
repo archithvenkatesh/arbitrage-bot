@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arbitrage Opportunities - Prediction Markets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 100%);
+            color: #ffffff;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            color: #a0aec0;
+            margin-bottom: 2rem;
+            font-size: 1.1rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(26, 32, 53, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: #a0aec0;
+        }
+
+        .spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(99, 102, 241, 0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .opportunity-card {
+            background: rgba(26, 32, 53, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .opportunity-card:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+        }
+
+        .market-row {
+            display: grid;
+            grid-template-columns: 1fr auto auto auto;
+            gap: 1rem;
+            padding: 0.75rem;
+            align-items: center;
+        }
+
+        .market-row.polymarket {
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 8px 8px 0 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .market-row.kalshi {
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 0 0 8px 8px;
+        }
+
+        .market-title {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .platform-label {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-right: 0.5rem;
+        }
+
+        .platform-polymarket {
+            background: rgba(139, 92, 246, 0.3);
+            color: #a78bfa;
+        }
+
+        .platform-kalshi {
+            background: rgba(99, 102, 241, 0.3);
+            color: #818cf8;
+        }
+
+        .odds {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .odd {
+            text-align: center;
+        }
+
+        .odd-label {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .odd-value {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .action-section {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .trading-instruction {
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0.75rem;
+            border-radius: 6px;
+            border-left: 3px solid #6366f1;
+        }
+
+        .instruction-label {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .instruction-text {
+            font-weight: 600;
+            color: #ffffff;
+        }
+
+        .profit-box {
+            text-align: center;
+            padding: 0.75rem;
+            border-radius: 6px;
+        }
+
+        .profit-label {
+            font-size: 0.75rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            margin-bottom: 0.25rem;
+        }
+
+        .profit-value {
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+
+        .profit-positive {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .profit-positive .profit-value {
+            color: #10b981;
+        }
+
+        .profit-negative {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .profit-negative .profit-value {
+            color: #ef4444;
+        }
+
+        .profit-neutral {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .profit-neutral .profit-value {
+            color: #f59e0b;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(26, 32, 53, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #a0aec0;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎯 Arbitrage Opportunities</h1>
+        <p class="subtitle">Real-time prediction market arbitrage detection</p>
+
+        <div class="controls">
+            <button class="btn" onclick="fetchOpportunities()">🔄 Refresh</button>
+            <button class="btn btn-secondary" onclick="location.href='/'">← Back to Main</button>
+        </div>
+
+        <div class="stats" id="stats" style="display: none;">
+            <div class="stat-card">
+                <div class="stat-label">Total Opportunities</div>
+                <div class="stat-value" id="totalOpps">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Profitable (After Fees)</div>
+                <div class="stat-value profit-positive" id="profitable">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Best Opportunity</div>
+                <div class="stat-value" id="bestProfit">0%</div>
+            </div>
+        </div>
+
+        <div id="results">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Click "Refresh" to find arbitrage opportunities</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="fees.js"></script>
+    <script src="arbitrage.js"></script>
+
+    <script>
+        async function fetchOpportunities() {
+            const resultsDiv = document.getElementById('results');
+            const statsDiv = document.getElementById('stats');
+
+            resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div><p>Fetching markets and analyzing opportunities...</p></div>';
+            statsDiv.style.display = 'none';
+
+            try {
+                // Fetch from both platforms using direct APIs
+                const response = await fetch('/api/direct/both?limit=500');
+
+                if (!response.ok) {
+                    throw new Error('API request failed');
+                }
+
+                const data = await response.json();
+                const kalshiMarkets = data.kalshi.markets;
+                const polymarketMarkets = data.polymarket.markets;
+
+                console.log(`Fetched ${kalshiMarkets.length} Kalshi markets and ${polymarketMarkets.length} Polymarket markets`);
+
+                // Find matching markets using basic algorithm
+                const matchedMarkets = findMatchingMarkets(kalshiMarkets, polymarketMarkets, 0.25);
+                console.log(`Found ${matchedMarkets.length} matched markets`);
+
+                // Analyze each match for arbitrage
+                const opportunities = [];
+                const investment = 100;
+
+                for (const match of matchedMarkets) {
+                    const kalshi = match.kalshi;
+                    const poly = match.polymarket;
+
+                    // Try both combinations
+                    const combinations = [
+                        { k_side: 'YES', k_price: kalshi.current_prices.yes.price, p_side: 'NO', p_price: poly.current_prices.no.price },
+                        { k_side: 'NO', k_price: kalshi.current_prices.no.price, p_side: 'YES', p_price: poly.current_prices.yes.price }
+                    ];
+
+                    for (const combo of combinations) {
+                        const totalPriceBefore = combo.k_price + combo.p_price;
+                        const profitBeforeFees = ((1 - totalPriceBefore) / totalPriceBefore) * 100;
+
+                        // Calculate with fees
+                        const contracts = investment / totalPriceBefore;
+                        const kalshiCost = calculateKalshiCost(contracts, combo.k_price, false);
+                        const polyCost = calculatePolymarketCost(contracts, combo.p_price);
+                        const totalCost = kalshiCost.totalCost + polyCost.totalCost;
+                        const payout = contracts;
+                        const netProfit = payout - totalCost;
+                        const profitPercent = (netProfit / totalCost) * 100;
+
+                        opportunities.push({
+                            polymarket: poly,
+                            kalshi: kalshi,
+                            kalshiSide: combo.k_side,
+                            kalshiPrice: combo.k_price,
+                            polymarketSide: combo.p_side,
+                            polymarketPrice: combo.p_price,
+                            profitBeforeFees,
+                            profitAfterFees: profitPercent,
+                            netProfit,
+                            kalshiFee: kalshiCost.fee,
+                            polyFee: polyCost.fee,
+                            similarity: match.similarity
+                        });
+                    }
+                }
+
+                // Sort by profit after fees
+                opportunities.sort((a, b) => b.profitAfterFees - a.profitAfterFees);
+
+                // Take top 50
+                const top50 = opportunities.slice(0, 50);
+
+                // Update stats
+                const profitable = top50.filter(o => o.profitAfterFees > 0).length;
+                const bestProfit = top50.length > 0 ? top50[0].profitAfterFees : 0;
+
+                document.getElementById('totalOpps').textContent = top50.length;
+                document.getElementById('profitable').textContent = profitable;
+                document.getElementById('bestProfit').textContent = `${bestProfit.toFixed(2)}%`;
+                statsDiv.style.display = 'grid';
+
+                // Display opportunities
+                if (top50.length === 0) {
+                    resultsDiv.innerHTML = '<div class="loading"><p>No arbitrage opportunities found at this time.</p></div>';
+                    return;
+                }
+
+                let html = '';
+                for (const opp of top50) {
+                    const profitClass = opp.profitAfterFees > 0 ? 'profit-positive' :
+                        opp.profitAfterFees > -0.5 ? 'profit-neutral' : 'profit-negative';
+
+                    html += `
+                        <div class="opportunity-card">
+                            <!-- Polymarket Row -->
+                            <div class="market-row polymarket">
+                                <div class="market-title">
+                                    <span class="platform-label platform-polymarket">Polymarket</span>
+                                    ${opp.polymarket.title}
+                                </div>
+                                <div class="odds">
+                                    <div class="odd">
+                                        <div class="odd-label">YES</div>
+                                        <div class="odd-value">${(opp.polymarket.current_prices.yes.price * 100).toFixed(1)}¢</div>
+                                    </div>
+                                    <div class="odd">
+                                        <div class="odd-label">NO</div>
+                                        <div class="odd-value">${(opp.polymarket.current_prices.no.price * 100).toFixed(1)}¢</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Kalshi Row -->
+                            <div class="market-row kalshi">
+                                <div class="market-title">
+                                    <span class="platform-label platform-kalshi">Kalshi</span>
+                                    ${opp.kalshi.title}
+                                </div>
+                                <div class="odds">
+                                    <div class="odd">
+                                        <div class="odd-label">YES</div>
+                                        <div class="odd-value">${(opp.kalshi.current_prices.yes.price * 100).toFixed(1)}¢</div>
+                                    </div>
+                                    <div class="odd">
+                                        <div class="odd-label">NO</div>
+                                        <div class="odd-value">${(opp.kalshi.current_prices.no.price * 100).toFixed(1)}¢</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Section -->
+                            <div class="action-section">
+                                <div class="trading-instruction">
+                                    <div class="instruction-label">Trading Strategy</div>
+                                    <div class="instruction-text">
+                                        Buy <strong>${opp.kalshiSide}</strong> on Kalshi @ ${(opp.kalshiPrice * 100).toFixed(1)}¢ + 
+                                        Buy <strong>${opp.polymarketSide}</strong> on Polymarket @ ${(opp.polymarketPrice * 100).toFixed(1)}¢
+                                    </div>
+                                </div>
+
+                                <div class="profit-box ${profitClass}">
+                                    <div class="profit-label">Before Fees</div>
+                                    <div class="profit-value">${opp.profitBeforeFees > 0 ? '+' : ''}${opp.profitBeforeFees.toFixed(2)}%</div>
+                                </div>
+
+                                <div class="profit-box ${profitClass}">
+                                    <div class="profit-label">After Fees</div>
+                                    <div class="profit-value">${opp.profitAfterFees > 0 ? '+' : ''}${opp.profitAfterFees.toFixed(2)}%</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                resultsDiv.innerHTML = html;
+
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="loading">
+                        <p style="color: #ef4444;">❌ Error: ${error.message}</p>
+                        <p style="color: #a0aec0;">Check the console for details</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+
+</html>
