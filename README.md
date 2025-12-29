@@ -4,11 +4,10 @@
 
 ## ✨ Features
 
-- ✅ **Live API Integration** - Real-time data from Polymarket & Kalshi via PolyRouter
-- ✅ **No CORS Issues** - Backend proxy server handles all API calls
+- ✅ **Live API Integration** - Direct connection to Polymarket & Kalshi APIs
+- ✅ **Vector Database** - Semantic matching using local vector embeddings
 - ✅ **Exact Fee Calculations** - Implements Kalshi taker/maker fees and Polymarket fees
 - ✅ **Color-Coded Opportunities** - Green (profit), Orange (break-even), Red (loss)
-- ✅ **Demo Mode** - Test with mock data instantly
 - ✅ **Premium Dark UI** - Modern glassmorphism design
 - ✅ **Auto-Refresh** - Configurable automatic updates
 
@@ -22,7 +21,8 @@ npm install
 
 This installs:
 - `express` - Web server
-- `cors` - CORS handling
+- `vectra` - Vector database
+- `@xenova/transformers` - Local AI embeddings
 - `node-fetch` - API requests
 
 ### 2. Start the Server
@@ -38,7 +38,6 @@ You should see:
 ║   🚀 Arbitrage Bot Server Running!                        ║
 ║                                                            ║
 ║   📊 Dashboard: http://localhost:3000                      ║
-║   🔧 API Proxy: http://localhost:3000/api/markets          ║
 ║   ❤️  Health:    http://localhost:3000/api/health          ║
 ║                                                            ║
 ╚════════════════════════════════════════════════════════════╝
@@ -50,7 +49,7 @@ Navigate to **http://localhost:3000** in your browser.
 
 ### 4. Fetch Live Data
 
-Click the **"Refresh Data"** button to fetch real-time market data from both platforms.
+Click the **"Refresh Data"** button to fetch real-time market data. The first run will take a few minutes to build the vector index.
 
 ## 📊 How It Works
 
@@ -61,27 +60,21 @@ Browser (http://localhost:3000)
     ↓
 Express Server (port 3000)
     ↓
-PolyRouter API (with your API key)
+Vector Database (Local)
     ↓
-Polymarket & Kalshi Data
+Polymarket & Kalshi APIs
 ```
 
-### Backend Proxy
+### Backend Logic
 
 The `server.js` file creates an Express server that:
-1. Serves the frontend files
-2. Provides a `/api/markets` endpoint
-3. Forwards requests to PolyRouter with authentication
-4. Returns data to the browser (no CORS issues!)
+1. Fetches markets from Polymarket and Kalshi APIs
+2. Generates vector embeddings for market titles using a local AI model
+3. Stores markets in a local vector database (`vectra`)
+4. Performs semantic search to find matching markets
+5. Returns matched opportunities to the frontend
 
-### API Key
 
-Your PolyRouter API key is stored in `server.js`:
-```javascript
-const API_KEY = 'pk_5f19d0fc535ed3c4304514dcbb01e36262045f92c9f62686d6e06b8ef932117c';
-```
-
-**Note:** This key is already configured and working!
 
 ## 🎬 Demo Mode
 
