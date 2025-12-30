@@ -2,10 +2,10 @@
   "name": "arbitrage-bot",
   "version": "1.0.0",
   "description": "Prediction market arbitrage bot with backend proxy",
-  "main": "server.js",
+  "main": "backend/server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js"
+    "start": "node backend/server.js",
+    "dev": "node backend/server.js"
   },
   "keywords": [
     "arbitrage",

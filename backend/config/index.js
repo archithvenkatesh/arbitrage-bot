@@ -17,6 +17,11 @@ const CONFIG = {
         maxDisplayedOpportunities: 100,
         autoRefresh: true,
         sortBy: 'similarity'
+    },
+
+    // Vector Database Configuration
+    vector: {
+        limit: 100 // Limit number of markets vectorized for testing/performance
     }
 };
 

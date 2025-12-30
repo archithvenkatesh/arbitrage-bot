@@ -1,15 +1,13 @@
-# 🚀 Prediction Market Arbitrage Bot - LIVE VERSION
+# 🚀 Prediction Market Arbitrage Bot - Modular Edition
 
 **Fully functional arbitrage bot with live API integration!**
 
 ## ✨ Features
 
 - ✅ **Live API Integration** - Direct connection to Polymarket & Kalshi APIs
-- ✅ **Vector Database** - Semantic matching using local vector embeddings
-- ✅ **Exact Fee Calculations** - Implements Kalshi taker/maker fees and Polymarket fees
-- ✅ **Color-Coded Opportunities** - Green (profit), Orange (break-even), Red (loss)
+- ✅ **Vector Database** - Semantic matching using local vector embeddings (Vectra)
+- ✅ **Modular Architecture** - Clean separation of concerns (Frontend/Backend/Services)
 - ✅ **Premium Dark UI** - Modern glassmorphism design
-- ✅ **Auto-Refresh** - Configurable automatic updates
 
 ## 🎯 Quick Start
 
@@ -19,202 +17,60 @@
 npm install
 ```
 
-This installs:
-- `express` - Web server
-- `vectra` - Vector database
-- `@xenova/transformers` - Local AI embeddings
-- `node-fetch` - API requests
-
 ### 2. Start the Server
 
 ```bash
 npm start
 ```
 
-You should see:
-```
-╔════════════════════════════════════════════════════════════╗
-║                                                            ║
-║   🚀 Arbitrage Bot Server Running!                        ║
-║                                                            ║
-║   📊 Dashboard: http://localhost:3000                      ║
-║   ❤️  Health:    http://localhost:3000/api/health          ║
-║                                                            ║
-╚════════════════════════════════════════════════════════════╝
-```
-
 ### 3. Open the Dashboard
 
 Navigate to **http://localhost:3000** in your browser.
 
-### 4. Fetch Live Data
+## 📂 Architecture
 
-Click the **"Refresh Data"** button to fetch real-time market data. The first run will take a few minutes to build the vector index.
-
-## 📊 How It Works
-
-### Architecture
+We use a **Modular Monolith** structure:
 
 ```
-Browser (http://localhost:3000)
-    ↓
-Express Server (port 3000)
-    ↓
-Vector Database (Local)
-    ↓
-Polymarket & Kalshi APIs
+/
+├── frontend/               # Frontend (Served statically)
+│   ├── css/
+│   ├── js/
+│   └── index.html
+├── backend/                # Backend Source
+│   ├── server.js           # Express Server Entry Point
+│   ├── routes/             # API Routes
+│   ├── services/           # Domain Logic
+│   │   ├── kalshi/         # Kalshi API & Vector Logic
+│   │   ├── polymarket/     # Polymarket API & Vector Logic
+│   │   ├── matching/       # Cross-market matching engine
+│   │   └── embeddings.js   # Shared AI Model interactions
+│   └── config/
+└── .market-db/             # Local Vector Database (Generated)
 ```
 
-### Backend Logic
+## ⚡ Performance Note (Why is it slow?)
+The first time you run a refresh, the bot must:
+1.  **Download Match Model**: Loads a 40MB+ AI model (`Xenova/all-MiniLM-L6-v2`) from HuggingFace.
+2.  **Generate Embeddings**: Runs the model on your CPU to "read" thousands of market titles. This is computationally intensive.
+3.  **Future Runs**: Will be faster as the model is cached, but re-indexing a large number of markets will always take some CPU time.
 
-The `server.js` file creates an Express server that:
-1. Fetches markets from Polymarket and Kalshi APIs
-2. Generates vector embeddings for market titles using a local AI model
-3. Stores markets in a local vector database (`vectra`)
-4. Performs semantic search to find matching markets
-5. Returns matched opportunities to the frontend
+## 🔧 API Endpoints
 
+-   **GET /api/opportunities**: Get matched markets from the database.
+-   **GET /api/opportunities/search?q=...**: Semantic search for markets.
+-   **POST /api/system/refresh**: Trigger a full database refresh (Fetch + Embed + Index).
+-   **GET /api/system/stats**: Get database statistics.
+-   **GET /api/markets/polymarket**: Direct Polymarket live feed.
+-   **GET /api/markets/kalshi**: Direct Kalshi live feed.
 
+## 🚀 Deployment
 
-## 🎬 Demo Mode
-
-Don't want to wait for API calls? Click **"Demo Mode"** to instantly see how the bot works with pre-loaded data showing a profitable arbitrage opportunity.
-
-## 📈 Understanding Results
-
-### When Opportunities Are Found
-
-The bot will display cards showing:
-- **Market Name** - The prediction market
-- **Profit %** - Expected return after all fees
-- **Net Profit** - Dollar amount you'd earn
-- **Strategy** - Which platform and side (YES/NO) to buy
-- **Match Confidence** - How certain the markets are equivalent
-
-Click any card to see:
-- Detailed cost breakdown
-- Exact contract quantities
-- Fee calculations for each platform
-- Trading instructions
-
-### When No Opportunities Found
-
-This is actually **normal and expected**! Real arbitrage opportunities are:
-- ⏱️ **Rare** - Markets are usually efficient
-- ⚡ **Brief** - Disappear quickly when found
-- 💰 **Small** - Often < 1-2% profit after fees
-
-The bot is working correctly if it shows "No Opportunities Found" - it just means the current market prices don't allow for profitable arbitrage.
-
-## 🔧 Configuration
-
-### Changing the API Key
-
-Edit `server.js` line 9:
-```javascript
-const API_KEY = 'your-new-api-key-here';
-```
-
-Then restart the server.
-
-### Adjusting Filters
-
-In the UI:
-- **Min Profit %** - Filter out low-profit opportunities
-- **Investment ($)** - Change the investment amount for calculations
-- **Sort By** - Sort by profit, profit %, or confidence
-
-### Fee Settings
-
-Click **Settings** to choose:
-- **Kalshi Fee Type** - Taker (7%) or Maker (1.75%)
-- **Auto-refresh** - Enable/disable automatic updates
-
-## 📁 File Structure
-
-```
-arbitrage-bot/
-├── server.js           # Express backend with proxy
-├── package.json        # Dependencies
-├── index.html          # Main UI
-├── styles.css          # Premium dark mode design
-├── config.js           # Configuration
-├── fees.js             # Fee calculation logic
-├── api.js              # API client (uses proxy)
-├── arbitrage.js        # Arbitrage detection
-├── app.js              # Main application logic
-├── mockData.js         # Demo mode data
-└── README.md           # This file
-```
-
-## 🚨 Important Notes
-
-### Market Verification
-Always verify that matched markets are truly equivalent before trading. The bot uses fuzzy text matching which may occasionally pair different markets.
-
-### Price Changes
-Prices can change between viewing and execution. Always check current prices on the actual platforms before trading.
-
-### Not Financial Advice
-This is a research and educational tool. Trade at your own risk.
-
-## 🔍 Troubleshooting
-
-### Server Won't Start
-
-**Error:** `EADDRINUSE: address already in use`
-
-**Solution:** Port 3000 is already in use. Either:
-1. Stop the other process using port 3000
-2. Change the port in `server.js` (line 6)
-
-### No Data Loading
-
-1. Check server logs in the terminal
-2. Verify the API key is correct
-3. Check your internet connection
-4. Try Demo Mode to verify the UI works
-
-### "No markets found" Error
-
-This means the API call failed. Check:
-- API key is valid
-- Internet connection is working
-- PolyRouter service is online
-
-## 🎯 Next Steps
-
-### For Development
-
-1. **Add More Platforms** - Extend to support additional prediction markets
-2. **WebSocket Integration** - Real-time price updates
-3. **Historical Tracking** - Log opportunities over time
-4. **Automated Trading** - Execute trades automatically (with approval)
-5. **Alerts** - Email/SMS notifications for high-profit opportunities
-
-### For Production
-
-1. **Environment Variables** - Move API key to `.env` file
-2. **HTTPS** - Add SSL certificate
-3. **Rate Limiting** - Implement request throttling
-4. **Caching** - Redis for better performance
-5. **Monitoring** - Add logging and error tracking
-
-## 📞 Support
-
-If you encounter issues:
-1. Check the server logs in your terminal
-2. Verify the API key is correct
-3. Try Demo Mode to isolate the issue
-4. Check PolyRouter documentation: https://docs.polyrouter.io
+This application is designed to be deployed as a single Node.js container.
+-   **Port**: 3000 (default)
+-   **Build**: No build step required (Vanilla JS + Node); just `npm start`.
+-   **Persistence**: Requires a persistent disk for `.market-db` if you want to retain embeddings across restarts (though it can rebuild on startup).
 
 ## 📜 License
 
-MIT License - Feel free to modify and use as you wish!
-
----
-
-**Built with ❤️ for prediction market traders**
-
-**Status:** ✅ Fully functional with live API integration
-**Last Updated:** December 18, 2025
+MIT License
