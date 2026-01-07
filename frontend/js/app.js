@@ -36,6 +36,18 @@ function setupEventListeners() {
  * Fetch matched markets from backend (using vector database)
  */
 async function fetchAndDisplayMarkets() {
+  // 1. Fetch Stats separate from matches for immediate feedback
+  fetch('/api/system/stats')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('polymarketCount').textContent = data.polymarketCount || 0;
+      document.getElementById('kalshiCount').textContent = data.kalshiCount || 0;
+      if (data.lastUpdate) {
+        document.getElementById('lastUpdated').textContent = new Date(data.lastUpdate).toLocaleTimeString();
+      }
+    })
+    .catch(console.error);
+
   showLoading(true, 'Fetching matches from vector database...');
   updateStatus('Fetching...');
 
@@ -43,7 +55,7 @@ async function fetchAndDisplayMarkets() {
     const minSim = parseInt(document.getElementById('minSimilarity').value) / 100 || 0.75;
 
     // Use the database endpoint for fast matching
-    const response = await fetch(`/api/db/matches?limit=100&minSimilarity=${minSim}`);
+    const response = await fetch(`/api/opportunities?limit=100&minSimilarity=${minSim}`);
 
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
@@ -51,10 +63,6 @@ async function fetchAndDisplayMarkets() {
 
     const data = await response.json();
     markets = data.matches || [];
-
-    // Update counters from database stats
-    document.getElementById('polymarketCount').textContent = data.dbStats?.polymarketCount || 0;
-    document.getElementById('kalshiCount').textContent = data.dbStats?.kalshiCount || 0;
 
     updateStatus(`${markets.length} matches`, true);
     displayMarkets();
